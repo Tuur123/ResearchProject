@@ -1,1 +1,2 @@
-djitellpopy
+djitellopy
+cv2
