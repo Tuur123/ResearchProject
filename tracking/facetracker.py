@@ -6,11 +6,9 @@ import time
 import cv2
 
 # queue's
-imgQueue = Queue()
+imgQueue = Queue(2)
 faceQueue = Queue()
 trackQueue = Queue()
-
-imgQueue.maxsize = 1000
 
 # init drone
 drone = tello.Tello()
@@ -41,14 +39,14 @@ pid_z.output_limits = (-40, 40)
 ### THREADS ###
 running = True
 
-def getImg(imgQueue, drone):
+def getImg(drone, imgQueue):
     while running:
         imgQueue.put(drone.get_frame_read().frame)
-        print("adding frame to q")
 
 def findFace(imgQueue, faceQueue):
 
     while running:
+        
         img = imgQueue.get()
         img = cv2.resize(img, (img_w, img_h))
         grayScaled = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -76,16 +74,18 @@ def findFace(imgQueue, faceQueue):
 
         if len(faceList) != 0:
             i = areaList.index(max(areaList)) # pick face closest to drone for tracking
-            faceQueue.put(img, {'x': faceList[i][0], 'y': faceList[i][1], 'z': areaList[i]})
+            faceQueue.put((img, {'x': faceList[i][0], 'y': faceList[i][1], 'z': areaList[i]}))
 
         else:
-            faceQueue.put(img, None)
+            faceQueue.put((img, None))
 
-def trackFace(faceQueue, trackQueue):
+def trackFace(faceQueue, trackQueue): 
 
     while running:
 
-        img, errors = faceQueue.get()
+        data = faceQueue.get()
+        img = data[0]
+        errors = data[1]
 
         if errors != None:
             error_x = errors['x']
@@ -95,47 +95,51 @@ def trackFace(faceQueue, trackQueue):
             speed_y = int(pid_y(error_y))
             speed_z = -int(pid_z(errors['z']))
 
-            print(f"Errors: {error_x - set_point_x}, {error_y - set_point_y}, {errors['z'] - set_point_z}. Speeds: {speed_x}, {speed_y}, {speed_z}")
-            trackQueue.put(img, (speed_x, speed_y, speed_z))
+            trackQueue.put((img, (speed_x, speed_y, speed_z)))
         else:
-            trackQueue.put(img, None)
+            trackQueue.put((img, None))
 
-imgThread = Thread(target=getImg(imgQueue, drone), daemon=True)
-faceThread = Thread(target=findFace(imgQueue, faceQueue), daemon=True)
-trackThread = Thread(target=trackFace(faceQueue, trackQueue), daemon=True)
+Thread(target=getImg, args=(drone, imgQueue), name="Image Thread", daemon=True).start()
+Thread(target=findFace, args=(imgQueue, faceQueue), name="Face Decection Thread", daemon=True).start()
+Thread(target=trackFace, args=(faceQueue, trackQueue), name="PID Thread", daemon=True).start()
 
-imgThread.start()
-faceThread.start()
-trackThread.start()
 ### THREADS ###
 
 # start drone
-# drone.takeoff()
+drone.takeoff()
 
 try:
     while True:
 
         pTime = time.time()
-        img, speeds = trackQueue.get()
+        data = trackQueue.get()
+        img = data[0]
+        speeds = data[1]
 
-        if speeds != None:
-            # drone.send_rc_control(0, speeds[0], speeds[1], speeds[2])
-            print(speeds)
+        if speeds:
+            drone.send_rc_control(0, speeds[0], speeds[1], speeds[2])
+            print(f"Speeds: {speeds}")
         else:
-            # drone.send_rc_control(0, 0, 0, 0)
+            drone.send_rc_control(0, 0, 0, 0)
             pass
 
-        fps = int(1 / (time.time() - pTime))
+        try:
+            fps = int(1 / (time.time() - pTime))
+        except ZeroDivisionError:
+            fps = "999+"
+
         cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
         cv2.imshow("Stream", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
-            # drone.land()
+            drone.land()
+
             running = False
             cv2.destroyAllWindows()
             break
 
 except KeyboardInterrupt:
-    # drone.land()
+    drone.land()
+
     running = False
     cv2.destroyAllWindows()
