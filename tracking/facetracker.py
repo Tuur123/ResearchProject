@@ -28,13 +28,13 @@ set_point_z = (img_w * img_h) // 12
 detector = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
 # PIDs
-pid_x = PID(1, 0.1, 0.1, setpoint=set_point_x, sample_time = None)
+pid_x = PID(-2, -0.2, -0.1, setpoint=set_point_x, sample_time = None)
 pid_y = PID(1, 0.1, 0.1, setpoint=set_point_y, sample_time = None)
 pid_z = PID(1, 0.1, 0.1, setpoint=set_point_z, sample_time = None)
 
-pid_x.output_limits = (-40, 40)
-pid_y.output_limits = (-40, 40)
-pid_z.output_limits = (-40, 40)
+pid_x.output_limits = (-100, 100)
+pid_y.output_limits = (-100, 100)
+pid_z.output_limits = (-100, 100)
 
 ### THREADS ###
 running = True
@@ -50,7 +50,7 @@ def findFace(imgQueue, faceQueue):
         img = imgQueue.get()
         img = cv2.resize(img, (img_w, img_h))
         grayScaled = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        faces = detector.detectMultiScale(grayScaled, 1.2, 5)
+        faces = detector.detectMultiScale(grayScaled, 1.1, 4)
 
         faceList = []
         areaList = []
@@ -117,7 +117,7 @@ try:
         speeds = data[1]
 
         if speeds:
-            drone.send_rc_control(0, speeds[0], speeds[1], speeds[2])
+            drone.send_rc_control(0, 0, speeds[1], speeds[0])
             print(f"Speeds: {speeds}")
         else:
             drone.send_rc_control(0, 0, 0, 0)
