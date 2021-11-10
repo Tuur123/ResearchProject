@@ -128,7 +128,7 @@ try:
         except ZeroDivisionError:
             fps = "999+"
 
-        cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
 
         cv2.imshow("Stream", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
