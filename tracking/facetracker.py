@@ -28,9 +28,9 @@ set_point_z = (img_w * img_h) // 12
 detector = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 
 # PIDs
-pid_x = PID(-1, -0.1, -0.1, setpoint=set_point_x, sample_time = None)
-pid_y = PID(-1, -0.1, -0.1, setpoint=set_point_y, sample_time = None)
-pid_z = PID(-1, -0.1, -0.1, setpoint=set_point_z, sample_time = None)
+pid_x = PID(1, 0.1, 0.1, setpoint=set_point_x, sample_time = None)
+pid_y = PID(1, 0.1, 0.1, setpoint=set_point_y, sample_time = None)
+pid_z = PID(1, 0.1, 0.1, setpoint=set_point_z, sample_time = None)
 
 pid_x.output_limits = (-40, 40)
 pid_y.output_limits = (-40, 40)
