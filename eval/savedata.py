@@ -1,15 +1,21 @@
-import cv2
 import pickle
 
 class FrameSaver:
 
-    def __init__(self, fileName):
+    def __init__(self, filename):
         self.frames = []
-        self.f = open(fileName, "w")
-
+        self.filename = filename
+        
     def saveFrame(self, img, speeds, errors):
         self.frames.append([img, speeds, errors])
 
-    def save(self):
-        pickle.dump(self.frames, self.f)
-        self.f.close()
+        if len(self.frames) > 100:
+            print("saving frames")
+            frames = self.frames
+            self.save(frames)
+            self.frames = []
+
+    def save(self, frames):
+        f = open(self.filename, "wb")
+        pickle.dump(frames, f)
+        f.close()        
