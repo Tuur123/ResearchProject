@@ -33,8 +33,8 @@ poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.8, min_tracking
 mpDraw = mp.solutions.drawing_utils
 
 # PIDs
-pid_x = PID(-0.2, 0, -0.2, setpoint=set_point_x, sample_time = 0.01)
-pid_y = PID(-0.2, 0, -0.2, setpoint=set_point_y, sample_time = 0.01)
+pid_x = PID(-0.15, -0.7, -0.1, setpoint=set_point_x, sample_time = 0.01)
+pid_y = PID(-0.2, -0.2, 0, setpoint=set_point_y, sample_time = 0.01)
 pid_z = PID(1, 0.1, 0.1, setpoint=set_point_z, sample_time = 0.01)
 
 pid_x.output_limits = (-100, 100)
@@ -49,7 +49,6 @@ def findPose(img):
 
     if landmarks:
         img, speeds, errors = trackPose(img, landmarks.landmark)
-        mpDraw.draw_landmarks(img, landmarks)
         return img, speeds, errors
     else:
         return img, None, None
@@ -62,22 +61,24 @@ def trackPose(img, landmark):
             'z': landmark[0].z * img_w}
 
     # draw face average
-    img = cv2.circle(img, (int(face['x']), int(face['y'])), 5, (0, 0, 255), cv2.FILLED)
-    img = cv2.circle(img, (set_point_x, set_point_y), 5, (255, 0, 0), cv2.FILLED)
+    img = cv2.circle(img, (set_point_x, set_point_y), 5, (255, 0, 0), cv2.FILLED) # setpoint
+    img = cv2.circle(img, (int(face['x']), int(face['y'])), 5, (0, 0, 255), cv2.FILLED) # face location
     img = cv2.line(img, (set_point_x, set_point_y), (int(face['x']), int(face['y'])), (255, 0, 0), 2, cv2.FILLED)
     
+    # draw error tolerance
+    img = cv2.line(img, ((set_point_x - 50), set_point_y), ((set_point_x + 50), set_point_y), (0, 255, 0), 2, cv2.FILLED) # x
+    img = cv2.line(img, (set_point_x, (set_point_y - 50)), (set_point_x, (set_point_y + 50)), (0, 255, 0), 2, cv2.FILLED) # y
+
     # calc errors
-    xyError = math.sqrt((face['x'] - set_point_x)**2 + (face['y'] - set_point_y)**2)
-    zError = face['z'] - set_point_z
+    errors = (abs(face['x'] - set_point_x), abs(face['y'] - set_point_y), abs(face['z'] - set_point_z))
 
     # calc speeds
     speeds = [int(pid_x(face['x'])), int(pid_y(face['y'])), -int(pid_z(face['z']))]
 
     # keep pid loop from oscillating
-    for idx, speed in enumerate(speeds):
-        if -10 < speed < 10: speeds[idx] = 0
 
-    return img, speeds, (xyError, zError)
+
+    return img, speeds, errors
 
 
 # start drone
