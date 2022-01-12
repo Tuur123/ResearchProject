@@ -24,7 +24,7 @@ print(f"Battery level: {drone.get_battery()}%")
 img_h, img_w = 720, 960
 set_point_x = img_w // 2
 set_point_y = img_h // 2
-set_point_z = (img_w * img_h) // 16 # keep face in 1/16th of frame
+set_point_z = (img_w * img_h) // 9 # keep face in 1/9h of frame
 
 # detector
 poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
