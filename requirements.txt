@@ -2,5 +2,5 @@ djitellopy
 opencv-python
 simple-pid
 mediapipe
-tensorflow==2.5.0
+tensorflow==2.5.2
 tensorflow_hub
