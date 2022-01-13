@@ -1,4 +1,3 @@
-from eval.savedata import FrameSaver
 from djitellopy import tello
 from threading import Thread
 from simple_pid import PID
@@ -10,7 +9,7 @@ import cv2
 flying_enabled = False
 
 # init frame saver
-saver = FrameSaver("eval/frames/frames.pkl")
+# saver = FrameSaver("eval/frames/frames.pkl")
 
 # init drone
 drone = tello.Tello()
@@ -101,7 +100,7 @@ try:
             if flying_enabled:
                 drone.send_rc_control(0, 0, 0, speeds[0])
            
-            saver.saveFrame(img, speeds, errors)
+            # saver.saveFrame(img, speeds, errors)
             print(f"Speeds: {speeds}")
 
         else:

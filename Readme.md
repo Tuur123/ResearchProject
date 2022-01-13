@@ -12,3 +12,8 @@ Placing computer vision functions in threads improves fps drasticly (as much as 
 however this increases the delay to a point where the PID control is rendered useless.
 
 When flying over uneven ground drone will keep it highest altitude, e.g going higher to clear obstacle but not come down after.
+
+
+
+## SOURCES
+
