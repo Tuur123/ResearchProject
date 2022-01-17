@@ -15,7 +15,8 @@ When flying over uneven ground drone will keep it highest altitude, e.g going hi
 
 When connecting to tello on device with more than 2 network adapters, windows will route those packets to the ethernet connection rather than wifi wich is connected to the tello.
 This is fixed by modifying the djitellopy library.
-![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/bind_socket.png)
+
+>![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/bind_socket.png)
 
 
 
