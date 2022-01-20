@@ -18,6 +18,8 @@ This is fixed by modifying the djitellopy library.
 
 >![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/bind_socket.png)
 
+posetracking with movenet doesnt give as much accuracy as with mediapipe.
+
 
 
 ## SOURCES
@@ -25,3 +27,5 @@ This is fixed by modifying the djitellopy library.
 http://ncfrn.mcgill.ca/members/pubs/person_following_robot_icvs2017.pdf
 
 https://medium.com/nanonets/how-i-built-a-self-flying-drone-to-track-people-in-under-50-lines-of-code-7485de7f828e
+
+https://www.section.io/engineering-education/multi-person-pose-estimator-with-python/
