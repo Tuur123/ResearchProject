@@ -6,7 +6,7 @@ import math
 import time
 import cv2
 
-flying_enabled = False
+flying_enabled = True
 
 # init frame saver
 # saver = FrameSaver("eval/frames/frames.pkl")
@@ -22,7 +22,7 @@ print(f"Battery level: {drone.get_battery()}%")
 # constants
 img_h, img_w = 720, 960
 set_point_x = img_w // 2
-set_point_y = img_h // 2
+set_point_y = img_h // 3
 set_point_z = (img_w * img_h) // 9 # keep face in 1/9h of frame
 
 # detector
@@ -33,12 +33,12 @@ mpDraw = mp.solutions.drawing_utils
 
 # PIDs
 pid_x = PID(-0.15, -0.7, -0.1, setpoint=set_point_x, sample_time = 0.01)
-pid_y = PID(-0.2, -0.2, 0, setpoint=set_point_y, sample_time = 0.01)
+pid_y = PID(-0.15, -0.7, -0.1, setpoint=set_point_y, sample_time = 0.01)
 pid_z = PID(1, 0.1, 0.1, setpoint=set_point_z, sample_time = 0.01)
 
-pid_x.output_limits = (-100, 100)
-pid_y.output_limits = (-100, 100)
-pid_z.output_limits = (-100, 100)
+pid_x.output_limits = (-50, 50)
+pid_y.output_limits = (-50, 50)
+pid_z.output_limits = (-50, 50)
 
 # CV functions
 def findPose(img):
@@ -47,11 +47,11 @@ def findPose(img):
     landmarks = results.pose_landmarks
 
     if landmarks:
-        img, speeds, errors = trackPose(img, landmarks.landmark)
-        return img, speeds, errors
+        return trackPose(img, landmarks.landmark)
     else:
         return img, None, None
    
+
 def trackPose(img, landmark): 
 
     # face average
@@ -72,10 +72,14 @@ def trackPose(img, landmark):
     errors = (abs(face['x'] - set_point_x), abs(face['y'] - set_point_y), abs(face['z'] - set_point_z))
 
     # calc speeds
-    speeds = [int(pid_x(face['x'])), int(pid_y(face['y'])), -int(pid_z(face['z']))]
+    speeds = [int(pid_x(face['x'])), -int(pid_y(face['y'])), int(pid_z(face['z']))]
 
-    # keep pid loop from oscillating
+    for idx, error in enumerate(errors):
+        if error < 100:
+            speeds[idx] = 0
 
+    if drone.get_height() < 150:
+        speeds[1] = 10
 
     return img, speeds, errors
 
@@ -98,10 +102,12 @@ try:
         if speeds:     
 
             if flying_enabled:
-                drone.send_rc_control(0, 0, 0, speeds[0])
+                drone.send_rc_control(0, 0, speeds[1], speeds[0])
            
             # saver.saveFrame(img, speeds, errors)
             print(f"Speeds: {speeds}")
+
+            
 
         else:
             if flying_enabled:

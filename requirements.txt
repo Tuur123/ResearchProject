@@ -4,3 +4,4 @@ simple-pid
 mediapipe
 tensorflow==2.5.2
 tensorflow_hub
+pyzbar
