@@ -26,7 +26,7 @@ Scanning the CovidSafe QR Code give an encoded string
 
 drone resolution is not that great, scanning complex qr codes is not feasible
 
-if someone uses phone of someone else, we can detect this because we will have 2 faces with the some qr code
+if someone uses phone of someone else, we can detect this because we will have 2 faces with the same qr code
 
 not possible to run face identification on windows, running it on ubuntu vm
 
