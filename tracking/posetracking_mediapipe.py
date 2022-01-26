@@ -23,7 +23,7 @@ print(f"Battery level: {drone.get_battery()}%")
 img_h, img_w = 720, 960
 set_point_x = img_w // 2
 set_point_y = img_h // 3
-set_point_z = (img_w * img_h) // 9 # keep face in 1/9h of frame
+set_point_z = img_w // 3
 
 # detector
 poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
@@ -102,19 +102,15 @@ try:
         if speeds:     
 
             if flying_enabled:
-                drone.send_rc_control(0, 0, speeds[1], speeds[0])
-           
-            # saver.saveFrame(img, speeds, errors)
-            print(f"Speeds: {speeds}")
+                drone.send_rc_control(speeds[2], 0, speeds[1], speeds[0])
 
-            
 
         else:
             if flying_enabled:
                 drone.send_rc_control(0, 0, 0, 0)
         try:
             fps = int(1 / (time.time() - pTime))
-        except ZeroDivisionError:
+        except ZeroDivisionError:5
             fps = "999+"
 
         cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 1)
