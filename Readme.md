@@ -22,11 +22,13 @@ posetracking with movenet doesnt give as much accuracy as with mediapipe.
 
 PID's are hard to implement because of the latency, the drone always overshoot its target
 
-Scanning the CovidSafe QR Code give a base64 enc
+Scanning the CovidSafe QR Code give an encoded string
 
 drone resolution is not that great, scanning complex qr codes is not feasible
 
 if someone uses phone of someone else, we can detect this because we will have 2 faces with the some qr code
+
+not possible to run face identification on windows, running it on ubuntu vm
 
 ## SOURCES
 

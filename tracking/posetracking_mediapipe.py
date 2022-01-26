@@ -6,7 +6,7 @@ import math
 import time
 import cv2
 
-flying_enabled = True
+flying_enabled = False
 
 # init frame saver
 # saver = FrameSaver("eval/frames/frames.pkl")
@@ -110,7 +110,7 @@ try:
                 drone.send_rc_control(0, 0, 0, 0)
         try:
             fps = int(1 / (time.time() - pTime))
-        except ZeroDivisionError:5
+        except ZeroDivisionError:
             fps = "999+"
 
         cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 1)
