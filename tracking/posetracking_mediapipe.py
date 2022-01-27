@@ -1,15 +1,19 @@
-from djitellopy import tello
-from threading import Thread
-from simple_pid import PID
-import mediapipe as mp
 import math
+import pickle
+import socket
 import time
+from threading import Thread
+
 import cv2
+import mediapipe as mp
+from djitellopy import tello
+from pyzbar.pyzbar import decode
+from simple_pid import PID
 
 flying_enabled = False
-
-# init frame saver
-# saver = FrameSaver("eval/frames/frames.pkl")
+searching = True
+track_time_out = False
+track_timeout_time = 0
 
 # init drone
 drone = tello.Tello()
@@ -23,10 +27,10 @@ print(f"Battery level: {drone.get_battery()}%")
 img_h, img_w = 720, 960
 set_point_x = img_w // 2
 set_point_y = img_h // 3
-set_point_z = img_w // 3
+set_point_z = 100 # distance between eye points
 
 # detector
-poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.8, min_tracking_confidence=0.8)
+poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.85, min_tracking_confidence=0.85)
  
 # mp drawing
 mpDraw = mp.solutions.drawing_utils
@@ -34,11 +38,9 @@ mpDraw = mp.solutions.drawing_utils
 # PIDs
 pid_x = PID(-0.15, -0.7, -0.1, setpoint=set_point_x, sample_time = 0.01)
 pid_y = PID(-0.15, -0.7, -0.1, setpoint=set_point_y, sample_time = 0.01)
-pid_z = PID(1, 0.1, 0.1, setpoint=set_point_z, sample_time = 0.01)
 
-pid_x.output_limits = (-50, 50)
-pid_y.output_limits = (-50, 50)
-pid_z.output_limits = (-50, 50)
+pid_x.output_limits = (-25, 25)
+pid_y.output_limits = (-25, 25)
 
 # CV functions
 def findPose(img):
@@ -49,17 +51,62 @@ def findPose(img):
     if landmarks:
         return trackPose(img, landmarks.landmark)
     else:
-        return img, None, None
+        return img, None, True, False
    
-
 def trackPose(img, landmark): 
 
-    # face average
+    searching = False
+    track_time_out = False
+
+    # face keypoints
     face = {'x': landmark[0].x * img_w,
             'y': landmark[0].y * img_h,
-            'z': landmark[0].z * img_w}
+            'z': (landmark[3].x - landmark[6].x) * img_w}
 
-    # draw face average
+    # calc errors
+    errors = (abs(face['x'] - set_point_x), abs(face['y'] - set_point_y), abs(face['z'] - set_point_z))
+
+    # calc speeds
+    speeds = [int(pid_x(face['x'])), -int(pid_y(face['y'])), 0]
+
+    if face['z'] < 120:
+        speeds[2] = 25
+    if face['z'] > 140:
+        speeds[2] = -25
+
+    if face['z'] < 100 and face['z'] > 140: # if distance to face is good check for qr code
+
+        codes = decode(img)
+
+        if codes: # we can detect multiple codes
+            for qr in codes:
+                
+                x, y, w, h = qr.rect # get qr location, has to be in proximity of hand landmark
+
+                x = x-50
+                y = y-50
+                w = w+100
+                h = h+100
+
+                left = {'x': landmark[21].x * img_w,
+                        'y': landmark[21].y * img_h}
+
+                right = {'x': landmark[22].x * img_w,
+                        'y': landmark[22].y * img_h}
+
+                if (x < left['x'] < (x + w) and y < left['y'] < (y + h)) or (x < right['x'] < (x + w) and y < right['y'] < (y + h)): # make sure the person we are tracking is holding the qr
+                    x, y, w, h = qr.rect
+       
+                    # send data to face recognition software
+                    data = [img, img[y:y+h,x:x+w], qr.data]
+                    track_time_out = True
+
+    # keep pid loop from oscillating
+    for idx, error in enumerate(errors):
+        if error < 100:
+            speeds[idx] = 0
+
+    # draw face keypoints
     img = cv2.circle(img, (set_point_x, set_point_y), 5, (255, 0, 0), cv2.FILLED) # setpoint
     img = cv2.circle(img, (int(face['x']), int(face['y'])), 5, (0, 0, 255), cv2.FILLED) # face location
     img = cv2.line(img, (set_point_x, set_point_y), (int(face['x']), int(face['y'])), (255, 0, 0), 2, cv2.FILLED)
@@ -68,21 +115,7 @@ def trackPose(img, landmark):
     img = cv2.line(img, ((set_point_x - 50), set_point_y), ((set_point_x + 50), set_point_y), (0, 255, 0), 2, cv2.FILLED) # x
     img = cv2.line(img, (set_point_x, (set_point_y - 50)), (set_point_x, (set_point_y + 50)), (0, 255, 0), 2, cv2.FILLED) # y
 
-    # calc errors
-    errors = (abs(face['x'] - set_point_x), abs(face['y'] - set_point_y), abs(face['z'] - set_point_z))
-
-    # calc speeds
-    speeds = [int(pid_x(face['x'])), -int(pid_y(face['y'])), int(pid_z(face['z']))]
-
-    for idx, error in enumerate(errors):
-        if error < 100:
-            speeds[idx] = 0
-
-    if drone.get_height() < 150:
-        speeds[1] = 10
-
-    return img, speeds, errors
-
+    return img, speeds, searching, track_time_out
 
 # start drone
 if flying_enabled:
@@ -97,34 +130,44 @@ try:
     while True:
 
         pTime = time.time()
-        img, speeds, errors = findPose(drone.get_frame_read().frame)
 
-        if speeds:     
+        img = drone.get_frame_read().frame
 
-            if flying_enabled:
-                drone.send_rc_control(speeds[2], 0, speeds[1], speeds[0])
+        if not track_time_out:
+            img, speeds, searching, track_time_out = findPose(img)
 
+            if speeds:     
+                if flying_enabled:
+                    if drone.get_height() < 150: # if height gets too low we slowly let the drone climb
+                        speeds[1] = 20
+                    drone.send_rc_control(0, speeds[2], speeds[1], speeds[0])
+                track_timeout_time = time.time()                
 
-        else:
-            if flying_enabled:
-                drone.send_rc_control(0, 0, 0, 0)
+        if searching and flying_enabled:
+            if drone.get_height() < 150: # if height gets too low we slowly let the drone climb
+                drone.send_rc_control(0, 0, 20, 10)
+            else:
+                drone.send_rc_control(0, 0, 0, 10)
+            
+        if track_time_out:
+            if time.time() - track_timeout_time > 5:
+                searching = False
+                track_time_out = False
+
         try:
             fps = int(1 / (time.time() - pTime))
         except ZeroDivisionError:
             fps = "999+"
 
         cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 1)
-
         cv2.imshow("Stream", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             if flying_enabled:
-                drone.land()  
-            running = False
+                drone.land()      
             cv2.destroyAllWindows()
             break
 
 except KeyboardInterrupt:
     if flying_enabled:
         drone.land()
-    running = False
     cv2.destroyAllWindows()
