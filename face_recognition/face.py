@@ -1,25 +1,22 @@
-from email import message
+import cv2
+from threading import Thread
 import face_recognition
-import socket
-import pickle
 
-HOST = ''
-PORT = 5000
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((HOST, PORT))
-s.listen(1)
 
-conn, addr = s.accept()
+class CheckThread(Thread):
+   def __init__(self, qr_image, face_image, qr_data, person_count):
+       # Call the Thread class's init function
+       Thread.__init__(self)
+       self.qr_image = qr_image
+       self.face_image = face_image
+       self.qr_data = qr_data
+       self.person_count = person_count
 
-while True:
 
-    messagestr = ""
+   # Override the run() function of Thread class
+   def run(self):
 
-    while bytes("\n") not in messagestr:
-        messagestr += conn.recv(1)
+        print(f"Person {self.person_count} is {self.qr_data}")
 
-    messagestr = messagestr[:-2]
-
-    data = pickle.loads(messagestr)
-
-    print(data)
+        if self.qr_data == "UNSAFE":
+            cv2.imshow("UNSAFE PERSON", self.face_image)
