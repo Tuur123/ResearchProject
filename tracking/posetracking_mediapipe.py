@@ -15,6 +15,14 @@ searching = True
 track_time_out = False
 track_timeout_time = 0
 
+# init connection to face server
+HOST = '192.168.8.49'
+PORT = 5000
+
+# Create a socket connection.
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect((HOST, PORT))
+
 # init drone
 drone = tello.Tello()
 drone.connect()
@@ -95,10 +103,25 @@ def trackPose(img, landmark):
                         'y': landmark[22].y * img_h}
 
                 if (x < left['x'] < (x + w) and y < left['y'] < (y + h)) or (x < right['x'] < (x + w) and y < right['y'] < (y + h)): # make sure the person we are tracking is holding the qr
+                    
+                    # get code from image
                     x, y, w, h = qr.rect
-       
+                    qr_image = img[y:y+h,x:x+w]
+
+                    # get face from frame
+                    x = landmark[0].x - 200
+                    y = landmark[0].y - 200
+
+                    w = landmark[0].x + 200
+                    h = landmark[0].y + 200
+                    face_image = img[y:y+h,x:x+w]
+
                     # send data to face recognition software
-                    data = [img, img[y:y+h,x:x+w], qr.data]
+                    data = bytearray(pickle.dumps([face_image, qr_image, qr.data]))
+                    data.append(bytes("\n"))
+
+                    s.send(data)
+
                     track_time_out = True
 
     # keep pid loop from oscillating

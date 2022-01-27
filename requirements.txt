@@ -3,3 +3,6 @@ opencv-python
 simple-pid
 mediapipe
 pyzbar
+cmake
+dlib
+face-recognition
