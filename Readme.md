@@ -30,8 +30,14 @@ If someone uses phone of someone else, this can be detected because there will b
 
 Because the python face_recognition softawere uses dlib, I use a ubuntu VM to run all recognition code in. Installing dlib on windows should be possible but I never made it work.
 
-## SOURCES
+# If you want to replicate this kind of project, have a look at these comminities for usefull tips and information
+>https://www.reddit.com/r/pythontips/
+>https://forum.opencv.org/
+>https://groups.google.com/g/mediapipe
 
+
+
+## SOURCES
 
 Covidsafe. “Bewijs dat je Covid Safe bent.” Accessed January 21, 2022. https://covidsafe.be/nl/.
 Chaiyadecha, Sasiwut. “How to Install Dlib Library for Python in Windows 10.” Analytics Vidhya (blog), July 25, 2020. https://medium.com/analytics-vidhya/how-to-install-dlib-library-for-python-in-windows-10-57348ba1117f.
@@ -42,3 +48,5 @@ Geitgey, Adam. “Machine Learning Is Fun! Part 4: Modern Face Recognition with 
 Engineering Education (EngEd) Program | Section. “Multi-Person Pose Estimation with Python.” Accessed January 20, 2022. https://www.section.io/engineering-education/multi-person-pose-estimator-with-python/.
 Palo, Norman Di. “How to Add Person Tracking to a Drone Using Deep Learning and NanoNets.” NanoNets (blog), July 13, 2018. https://medium.com/nanonets/how-i-built-a-self-flying-drone-to-track-people-in-under-50-lines-of-code-7485de7f828e.
 Sandler, Mark, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, and Liang-Chieh Chen. “MobileNetV2: Inverted Residuals and Linear Bottlenecks.” ArXiv:1801.04381 [Cs], March 21, 2019. http://arxiv.org/abs/1801.04381.
+
+I particularly used https://mediapipe.dev/ very much, as the drone being able to accurately track persons is the largests cornerstone of this project.
