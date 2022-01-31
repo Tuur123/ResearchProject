@@ -21,7 +21,7 @@ This is fixed by modifying the djitellopy library. This is not possible on linux
 
 >![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/bind_socket.png)
 
-posetracking with movenet doesnt give as much accuracy as with mediapipe.
+Posetracking with movenet doesnt give as much accuracy as with mediapipe.
 
 PID's are hard to implement because of the latency, the drone always overshoot its target and they are really hard to finetune.
 
