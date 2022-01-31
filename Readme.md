@@ -9,6 +9,15 @@ Run these commands on Ubuntu
 
 >sudo ./init
 
+<br>
+
+# Use Guide
+
+Once you've run the install scripts, start the server on the ubuntu VM first.
+Then you can start the drone and connect your windows to the drones WiFi.
+
+>![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/wifi.png)
+
 ## Findings
 
 Placing computer vision functions in threads improves fps drasticly (as much as 50x), 
@@ -32,6 +41,7 @@ If someone uses phone of someone else, this can be detected because there will b
 Because the python face_recognition softawere uses dlib, I use a ubuntu VM to run all recognition code in. Installing dlib on windows should be possible but I never made it work.
 If you're having issues with the server connection when using a VM, perhaps [my short tutorial](https://youtu.be/kc-t2D7QaUM) will help you.
 
+<br>
 
 ## If you want to replicate this kind of project, have a look at these comminities for usefull tips and information
 >https://www.reddit.com/r/pythontips/
@@ -41,6 +51,8 @@ If you're having issues with the server connection when using a VM, perhaps [my 
 >https://groups.google.com/g/mediapipe
 
 
+<br>
+<br>
 
 ## SOURCES
 
