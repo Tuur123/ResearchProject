@@ -1,10 +1,12 @@
 # Setup
 
-Run this command to setup venv and install python modules
+Run this command on a windows machine to setup venv and install python modules
 
 >Powershell.exe -executionpolicy remotesigned -File  .\init.ps1
 
-
+Run these commands on Ubuntu
+>sudo chmod +x init
+>sudo ./init
 
 ## Findings
 
@@ -14,21 +16,19 @@ however this increases the delay to a point where the PID control is rendered us
 When flying over uneven ground drone will keep it highest altitude, e.g going higher to clear obstacle but not come down after.
 
 When connecting to tello on device with more than 2 network adapters, windows will route those packets to the ethernet connection rather than wifi wich is connected to the tello.
-This is fixed by modifying the djitellopy library.
+This is fixed by modifying the djitellopy library. This is not possible on linux, where the kernel has absolute control over the routing and routing cant be changed.
 
 >![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/bind_socket.png)
 
 posetracking with movenet doesnt give as much accuracy as with mediapipe.
 
-PID's are hard to implement because of the latency, the drone always overshoot its target
+PID's are hard to implement because of the latency, the drone always overshoot its target and they are really hard to finetune.
 
-Scanning the CovidSafe QR Code give an encoded string
+Scanning the CovidSafe QR Code give an encoded string wich cant be read, also the camera resolution of the drone used in this demo is not great, so scanning the complex offical codes is not feasible. That's why in this demo I supplied dummy codes (see QR folder).
 
-drone resolution is not that great, scanning complex qr codes is not feasible
+If someone uses phone of someone else, this can be detected because there will be 2 faces with the same qr code.
 
-if someone uses phone of someone else, we can detect this because we will have 2 faces with the same qr code
-
-not possible to run face identification on windows, running it on ubuntu vm
+Because the python face_recognition softawere uses dlib, I use a ubuntu VM to run all recognition code in. Installing dlib on windows should be possible but I never made it work.
 
 ## SOURCES
 
