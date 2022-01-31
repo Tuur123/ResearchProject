@@ -16,7 +16,7 @@ Run these commands on Ubuntu
 Once you've run the install scripts, start the server on the ubuntu VM first.
 Then you can start the drone and connect your windows to the drones WiFi.
 
->![bind socket image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/wifi.png)
+>![wifi image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/wifi.png)
 
 ## Findings
 
