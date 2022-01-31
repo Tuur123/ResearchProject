@@ -31,7 +31,9 @@ When the drone scans a QR Code you will see a secondary screen pop-up wich conta
 
 >![scanned person](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/scanned.png)
 
-## Findings
+<br>
+
+## Observations during research
 
 Placing computer vision functions in threads improves fps drasticly (as much as 50x), 
 however this increases the delay to a point where the PID control is rendered useless.
