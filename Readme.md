@@ -30,7 +30,7 @@ If someone uses phone of someone else, this can be detected because there will b
 
 Because the python face_recognition softawere uses dlib, I use a ubuntu VM to run all recognition code in. Installing dlib on windows should be possible but I never made it work.
 
-# If you want to replicate this kind of project, have a look at these comminities for usefull tips and information
+## If you want to replicate this kind of project, have a look at these comminities for usefull tips and information
 >https://www.reddit.com/r/pythontips/
 
 >https://forum.opencv.org/
