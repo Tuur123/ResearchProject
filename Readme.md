@@ -6,6 +6,7 @@ Run this command on a windows machine to setup venv and install python modules
 
 Run these commands on Ubuntu
 >sudo chmod +x init
+
 >sudo ./init
 
 ## Findings
