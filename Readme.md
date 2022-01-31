@@ -32,7 +32,9 @@ Because the python face_recognition softawere uses dlib, I use a ubuntu VM to ru
 
 # If you want to replicate this kind of project, have a look at these comminities for usefull tips and information
 >https://www.reddit.com/r/pythontips/
+
 >https://forum.opencv.org/
+
 >https://groups.google.com/g/mediapipe
 
 
