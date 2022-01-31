@@ -82,7 +82,8 @@ def trackPose(img, landmark):
     if face['z'] > 140:
         speeds[2] = -25
 
-    if face['z'] < 100 and face['z'] > 140: # if distance to face is good check for qr code
+
+    if face['z'] > 100 and face['z'] < 140: # if distance to face is good check for qr code
 
         codes = decode(img)
 
@@ -109,18 +110,17 @@ def trackPose(img, landmark):
                     qr_image = img[y:y+h,x:x+w]
 
                     # get face from frame
-                    x = landmark[0].x - 200
-                    y = landmark[0].y - 200
+                    x = int(landmark[0].x * img_w) - 200
+                    y = int(landmark[0].y * img_h) - 200
 
-                    w = landmark[0].x + 200
-                    h = landmark[0].y + 200
+                    w = int(landmark[0].x * img_w) + 200
+                    h = int(landmark[0].y * img_h) + 200
                     face_image = img[y:y+h,x:x+w]
 
                     # send data to face recognition software
-                    data = bytearray(pickle.dumps([face_image, qr_image, qr.data]))
-                    data.append(bytes("\n"))
-
-                    s.send(data)
+                    msg = pickle.dumps([face_image, qr_image, qr.data])
+                    msg = bytes(f"{len(msg):<{10}}", 'utf-8') + msg
+                    s.send(msg)
 
                     track_time_out = True
 
