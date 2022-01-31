@@ -30,6 +30,8 @@ Scanning the CovidSafe QR Code give an encoded string wich cant be read, also th
 If someone uses phone of someone else, this can be detected because there will be 2 faces with the same qr code.
 
 Because the python face_recognition softawere uses dlib, I use a ubuntu VM to run all recognition code in. Installing dlib on windows should be possible but I never made it work.
+If you're having issues with the server connection when using a VM, perhaps [my short tutorial](https://youtu.be/kc-t2D7QaUM) will help you.
+
 
 ## If you want to replicate this kind of project, have a look at these comminities for usefull tips and information
 >https://www.reddit.com/r/pythontips/

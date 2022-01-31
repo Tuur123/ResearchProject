@@ -1,5 +1,3 @@
-import pickle
-import socket
 import time
 from threading import Thread
 
@@ -12,16 +10,8 @@ from simple_pid import PID
 flying_enabled = False
 searching = True
 track_time_out = False
-prev_landmarks = None
 track_timeout_time = 0
 
-# init connection to face server
-HOST = '192.168.8.49'
-PORT = 5000
-
-# Create a socket connection.
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((HOST, PORT))
 
 # init drone
 drone = tello.Tello()
@@ -50,27 +40,6 @@ pid_y = PID(-0.15, -0.7, -0.1, setpoint=set_point_y, sample_time = 0.01)
 pid_x.output_limits = (-25, 25)
 pid_y.output_limits = (-25, 25)
 
-
-# Server functions
-def Listen(s):
-    
-    global track_time_out
-
-    while True:
-
-        state = s.recv(4) # wait for 4 bytes
-
-        state = pickle.loads(state)
-
-        if not state: # we need to stop tracking
-            track_time_out = True
-
-
-def Send(msg):
-    msg = pickle.dumps(msg)
-    msg = bytes(f"{len(msg):<{10}}", 'utf-8') + msg
-    s.send(msg)
-
 # CV functions
 def findPose(img):
 
@@ -91,17 +60,6 @@ def trackPose(img, landmark):
     face = {'x': landmark[0].x * img_w,
             'y': landmark[0].y * img_h,
             'z': (landmark[3].x - landmark[6].x) * img_w}
-
-    # get face from frame
-    x = int(landmark[0].x * img_w) - 50
-    y = int(landmark[0].y * img_h) - 50
-
-    w = int(landmark[0].x * img_w) + 50
-    h = int(landmark[0].y * img_h) + 50
-    face_image = img[y:y+h,x:x+w]
-
-    Send([face_image, "CHECKED?"])
-
 
 
     # calc errors
@@ -138,11 +96,17 @@ def trackPose(img, landmark):
 
                 if (x < left['x'] < (x + w) and y < left['y'] < (y + h)) or (x < right['x'] < (x + w) and y < right['y'] < (y + h)): # make sure the person we are tracking is holding the qr
                     
-                    # send data to face recognition software
-                    msg = pickle.dumps([face_image, qr.data])
-                    msg = bytes(f"{len(msg):<{10}}", 'utf-8') + msg
-                    s.send(msg)
+                    # get face from frame
+                    x = int(landmark[0].x * img_w) - 200
+                    y = int(landmark[0].y * img_h) - 150
 
+                    w = int(landmark[0].x * img_w) + 50
+                    h = int(landmark[0].y * img_h) + 100
+                    face_image = img[x:x+w,y:y+h]
+
+                    cv2.putText(face_image, f"{qr.data.decode('utf-8')}", (75, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
+
+                    cv2.imshow("Face", face_image)
                     track_time_out = True
 
     # keep pid loop from oscillating
@@ -161,9 +125,6 @@ def trackPose(img, landmark):
 
     return img, speeds, searching, track_time_out
 
-# Start threads
-listener = Thread(target=Listen, args=(s,), name="Listener Thread")
-listener.start()
 
 # start drone
 if flying_enabled:
@@ -183,8 +144,9 @@ try:
 
         if not track_time_out:
             img, speeds, searching, track_time_out = findPose(img)
-
-            if speeds:     
+            
+            if speeds:
+                cv2.putText(img, f"TRACKING", (500, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 1)     
                 if flying_enabled:
                     if drone.get_height() < 150: # if height gets too low we slowly let the drone climb
                         speeds[1] = 20
@@ -192,6 +154,7 @@ try:
                 track_timeout_time = time.time()                
 
         if searching and flying_enabled:
+            cv2.putText(img, f"SEARCHING", (500, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
             if drone.get_height() < 150: # if height gets too low we slowly let the drone climb
                 drone.send_rc_control(0, 0, 20, 10)
             else:
@@ -208,6 +171,7 @@ try:
             fps = "999+"
 
         cv2.putText(img, f"{fps} fps", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 1)
+        cv2.putText(img, f"{drone.get_battery()}% Battery", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 1)
         cv2.imshow("Stream", img)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             if flying_enabled:
