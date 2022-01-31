@@ -1,4 +1,3 @@
-import math
 import pickle
 import socket
 import time
@@ -13,6 +12,7 @@ from simple_pid import PID
 flying_enabled = False
 searching = True
 track_time_out = False
+prev_landmarks = None
 track_timeout_time = 0
 
 # init connection to face server
@@ -50,6 +50,21 @@ pid_y = PID(-0.15, -0.7, -0.1, setpoint=set_point_y, sample_time = 0.01)
 pid_x.output_limits = (-25, 25)
 pid_y.output_limits = (-25, 25)
 
+
+# Server functions
+def Listen(s):
+    
+    global track_time_out
+
+    while True:
+
+        state = s.recv(4) # wait for 4 bytes
+
+        state = pickle.loads(state)
+
+        if not state: # we need to stop tracking
+            track_time_out = True
+
 # CV functions
 def findPose(img):
 
@@ -70,6 +85,18 @@ def trackPose(img, landmark):
     face = {'x': landmark[0].x * img_w,
             'y': landmark[0].y * img_h,
             'z': (landmark[3].x - landmark[6].x) * img_w}
+
+    # get face from frame
+    x = int(landmark[0].x * img_w) - 200
+    y = int(landmark[0].y * img_h) - 200
+
+    w = int(landmark[0].x * img_w) + 200
+    h = int(landmark[0].y * img_h) + 200
+    face_image = img[y:y+h,x:x+w]
+
+    msg = pickle.dumps([face_image, "CHECKED?"])
+    msg = bytes(f"{len(msg):<{10}}", 'utf-8') + msg
+    s.send(msg)
 
     # calc errors
     errors = (abs(face['x'] - set_point_x), abs(face['y'] - set_point_y), abs(face['z'] - set_point_z))
@@ -105,20 +132,8 @@ def trackPose(img, landmark):
 
                 if (x < left['x'] < (x + w) and y < left['y'] < (y + h)) or (x < right['x'] < (x + w) and y < right['y'] < (y + h)): # make sure the person we are tracking is holding the qr
                     
-                    # get code from image
-                    x, y, w, h = qr.rect
-                    qr_image = img[y:y+h,x:x+w]
-
-                    # get face from frame
-                    x = int(landmark[0].x * img_w) - 200
-                    y = int(landmark[0].y * img_h) - 200
-
-                    w = int(landmark[0].x * img_w) + 200
-                    h = int(landmark[0].y * img_h) + 200
-                    face_image = img[y:y+h,x:x+w]
-
                     # send data to face recognition software
-                    msg = pickle.dumps([face_image, qr_image, qr.data])
+                    msg = pickle.dumps([face_image, qr.data])
                     msg = bytes(f"{len(msg):<{10}}", 'utf-8') + msg
                     s.send(msg)
 
@@ -139,6 +154,10 @@ def trackPose(img, landmark):
     img = cv2.line(img, (set_point_x, (set_point_y - 50)), (set_point_x, (set_point_y + 50)), (0, 255, 0), 2, cv2.FILLED) # y
 
     return img, speeds, searching, track_time_out
+
+# Start threads
+listener = Thread(target=Listen, args=(s,), name="Listener Thread")
+listener.start()
 
 # start drone
 if flying_enabled:
