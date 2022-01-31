@@ -18,6 +18,19 @@ Then you can start the drone and connect your windows to the drones WiFi.
 
 >![wifi image](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/wifi.png)
 
+Then you can start the python script on the windows machine. The drone will take off after 2 seconds if you enable flying at line 10
+
+>![flying enable](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/flying_enable.png)
+
+You will see a livestream from the drones camera with some information on it such as a fps counter, battery percentage and what the drone is doing.
+If a person is being tracked it will also draw some indicator lines on the persons face and the target of the drone.
+
+>![stream](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/stream.png)
+
+When the drone scans a QR Code you will see a secondary screen pop-up wich contains the face of the person and text wich tells you if the person scanned is SAFE or UNSAFE.
+
+>![scanned person](https://raw.githubusercontent.com/Tuur123/ResearchProject/main/docs/scanned.png)
+
 ## Findings
 
 Placing computer vision functions in threads improves fps drasticly (as much as 50x), 

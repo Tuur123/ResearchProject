@@ -98,7 +98,7 @@ def trackPose(img, landmark):
                     
                     # get face from frame
                     x = int(landmark[0].x * img_w) - 200
-                    y = int(landmark[0].y * img_h) - 150
+                    y = int(landmark[0].y * img_h) - 200
 
                     w = int(landmark[0].x * img_w) + 50
                     h = int(landmark[0].y * img_h) + 100
