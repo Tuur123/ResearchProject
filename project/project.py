@@ -28,7 +28,7 @@ set_point_y = img_h // 3
 set_point_z = 100 # distance between eye points
 
 # detector
-poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.85, min_tracking_confidence=0.85)
+poseDetector = mp.solutions.pose.Pose(min_detection_confidence=0.95, min_tracking_confidence=0.85)
  
 # mp drawing
 mpDraw = mp.solutions.drawing_utils
@@ -104,9 +104,9 @@ def trackPose(img, landmark):
                     h = int(landmark[0].y * img_h) + 100
                     face_image = img[x:x+w,y:y+h]
 
-                    cv2.putText(face_image, f"{qr.data.decode('utf-8')}", (75, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
+                    cv2.putText(img, f"{qr.data.decode('utf-8')}", (75, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
 
-                    cv2.imshow("Face", face_image)
+                    cv2.imshow("Face", img)
                     track_time_out = True
 
     # keep pid loop from oscillating
@@ -153,14 +153,16 @@ try:
                     drone.send_rc_control(0, speeds[2], speeds[1], speeds[0])
                 track_timeout_time = time.time()                
 
-        if searching and flying_enabled:
+        if searching:
             cv2.putText(img, f"SEARCHING", (500, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 1)
-            if drone.get_height() < 150: # if height gets too low we slowly let the drone climb
-                drone.send_rc_control(0, 0, 20, 10)
-            else:
-                drone.send_rc_control(0, 0, 0, 10)
+            if flying_enabled:
+                if drone.get_height() < 150: # if height gets too low we slowly let the drone climb
+                    drone.send_rc_control(0, 0, 20, 30)
+                else:
+                    drone.send_rc_control(0, 0, 0, 30)
             
         if track_time_out:
+            searching = True
             if time.time() - track_timeout_time > 5:
                 searching = False
                 track_time_out = False
